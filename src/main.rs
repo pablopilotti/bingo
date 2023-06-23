@@ -1,15 +1,22 @@
-use std::env;
+use argparse::{ArgumentParser, StoreTrue, Store};
 use std::process;
 use bingo::Config;
 
 fn main() {
-   
-    let config: Config = Config::build(env::args()).unwrap_or_else(|err: &str| {
-        eprintln!("Problem parsing arguments: {err}");
-        process::exit(1);
-    });
+    // Default values
+    let mut verbose: bool = false;
+    let mut size:usize = 10;
+    let mut seed: u8 = 0;
+    {  // this block limits scope of borrows by ap.refer() method
+        let mut ap: ArgumentParser<'_> = ArgumentParser::new();
+        ap.set_description("Generate and analize tombola ticket set");
+        ap.refer(&mut verbose).add_option(&["-v", "--verbose"], StoreTrue,"Be verbose");
+        ap.refer(&mut size).add_option(&["--size"], Store,"Size of the set of tombola tickets");
+        ap.refer(&mut seed).add_option(&["--seed"], Store,"seed for the random generation numbers");
+        ap.parse_args_or_exit();
+    }
 
-    if let Err(e) = bingo::run(config) {
+    if let Err(e) = bingo::run(Config{size, seed, verbose}) {
         eprintln!("Application error: {e}");
         process::exit(1);
     }

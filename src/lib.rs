@@ -9,17 +9,20 @@ use std::iter::Cycle;
 use std::ops;
 use rand::{seq::SliceRandom, SeedableRng};
 use rand_chacha::ChaChaRng;
+use std::iter::from_fn;
 
 pub struct Config {
-    size: usize,
-    seed: u8,
+    pub size: usize,
+    pub seed: u8,
+    pub verbose: bool
 }
 
 #[derive(Clone, Debug)]
 struct Generator {
     columns: [[ Vec<Vec<u32>>; 3]; 9],
     indexes: [[Cycle<std::vec::IntoIter<Vec<u32>>>; 3]; 9],
-    configurations : Vec<[usize; 9]>
+    configurations : Vec<[usize; 9]>,
+    conf_iter: Cycle<std::vec::IntoIter<[usize; 9]>>
 }
 
 impl Generator {
@@ -42,7 +45,8 @@ impl Generator {
             }
         }
         configurations.shuffle(& mut rng);
-        Generator {columns, indexes, configurations}
+        let conf_iter:Cycle<std::vec::IntoIter<[usize; 9]>>  = configurations.clone().into_iter().cycle();
+        Generator {columns, indexes, configurations, conf_iter}
     }
     fn show_stats(& mut self) {
         let mut sum: usize = 0;
@@ -56,41 +60,36 @@ impl Generator {
         println!("Max set of ticket: {}", sum.separate_with_dots());
     }
 
-    fn generate(& mut self, size: usize) {
-        let mut tickets: Vec<[u32;15]> = Vec::new();
-        let mut config_iter: Cycle<std::vec::IntoIter<[usize; 9]>> = self.configurations.clone().into_iter().cycle();
-        for _ in 0..size {
-            let config: [usize; 9] = config_iter.next().unwrap();
+    fn generate(& mut self) -> impl Iterator<Item = [u32;15]> + '_ {
+        from_fn(move || {
+            let config: [usize; 9] = self.conf_iter.next().unwrap();
+            // println!("config {:?}", config);
             let mut ticket:[u32;15] = [0;15];
             let mut index: usize= 0;
             for (m, n) in config.iter().enumerate() {
                 for number in  self.indexes[m][*n].next().unwrap().into_iter() {
                     ticket[index] = number;
                     index += 1;
+                    // println!("{} {} {} {}", index, m, *n, ind); 
                 }
                 
             }
-            tickets.push(ticket);
-        }
-        println!("{:?}", tickets);    
-        println!("{:?}", tickets.len());
-    }
-}
+            Some(ticket)
+        })
 
-impl Config {
-    pub fn build(mut args: impl Iterator<Item = String>) -> Result<Config, &'static str> {
-        args.next();
-        let size: usize = args.next().expect("Didn't get size").parse::<usize>().unwrap();
-        let seed: u8 = args.next().expect("Didn't get a seed").parse::<u8>().unwrap();
-        // let file_path: String = args.next().expect("Didn't get a file path");
-        Ok(Config { size, seed })
     }
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let mut g: Generator = Generator::new(config.seed);
-    g.show_stats();
-    g.generate(config.size);
-
+    if config.verbose {
+        g.show_stats();
+    }
+    
+    for _ in 0..config.size {
+        let ticket: [u32;15] = g.generate().next().unwrap();
+        println!("{:?}", ticket); 
+   
+    }
     Ok(())
 }
