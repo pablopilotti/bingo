@@ -63,14 +63,12 @@ impl Generator {
     fn generate(& mut self) -> impl Iterator<Item = [u32;15]> + '_ {
         from_fn(move || {
             let config: [usize; 9] = self.conf_iter.next().unwrap();
-            // println!("config {:?}", config);
             let mut ticket:[u32;15] = [0;15];
             let mut index: usize= 0;
             for (m, n) in config.iter().enumerate() {
                 for number in  self.indexes[m][*n].next().unwrap().into_iter() {
                     ticket[index] = number;
                     index += 1;
-                    // println!("{} {} {} {}", index, m, *n, ind); 
                 }
                 
             }
@@ -88,7 +86,10 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     
     for _ in 0..config.size {
         let ticket: [u32;15] = g.generate().next().unwrap();
-        println!("{:?}", ticket); 
+        println!("{} {} {} {} {} {} {} {} {} {} {} {} {} {} {}",
+             ticket[0], ticket[1], ticket[2], ticket[3], ticket[4], 
+             ticket[5], ticket[6], ticket[7], ticket[8], ticket[9], 
+             ticket[10], ticket[11], ticket[12], ticket[13], ticket[14]); 
    
     }
     Ok(())

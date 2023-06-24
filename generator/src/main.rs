@@ -1,6 +1,6 @@
 use argparse::{ArgumentParser, StoreTrue, Store};
 use std::process;
-use bingo::Config;
+use generator::Config;
 
 fn main() {
     // Default values
@@ -16,7 +16,7 @@ fn main() {
         ap.parse_args_or_exit();
     }
 
-    if let Err(e) = bingo::run(Config{size, seed, verbose}) {
+    if let Err(e) = generator::run(Config{size, seed, verbose}) {
         eprintln!("Application error: {e}");
         process::exit(1);
     }
