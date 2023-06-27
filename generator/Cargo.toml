@@ -12,6 +12,7 @@ thousands = "*"
 rand = "*"
 rand_chacha = "*"
 argparse = "*"
+ticket = { path = "../ticket/" }
 
 [lib]
 name = "generator"

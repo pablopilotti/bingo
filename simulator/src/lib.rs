@@ -15,7 +15,7 @@ impl Config {
         let mut rng: rand_chacha::ChaCha20Rng = ChaChaRng::from_seed([seed; 32]);
         let mut numbers: Vec<u32> = (1..91).collect::<Vec<u32>>();
         numbers.shuffle(& mut rng);
-        return numbers.try_into().unwrap();
+        numbers.try_into().unwrap()
     }
 
 }

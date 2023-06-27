@@ -10,6 +10,7 @@ use std::ops;
 use rand::{seq::SliceRandom, SeedableRng};
 use rand_chacha::ChaChaRng;
 use std::iter::from_fn;
+use ticket;
 
 pub struct Config {
     pub size: usize,
@@ -86,11 +87,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     
     for _ in 0..config.size {
         let ticket: [u32;15] = g.generate().next().unwrap();
-        println!("{} {} {} {} {} {} {} {} {} {} {} {} {} {} {}",
-             ticket[0], ticket[1], ticket[2], ticket[3], ticket[4], 
-             ticket[5], ticket[6], ticket[7], ticket[8], ticket[9], 
-             ticket[10], ticket[11], ticket[12], ticket[13], ticket[14]); 
-   
+        ticket::show(ticket);
     }
     Ok(())
 }
