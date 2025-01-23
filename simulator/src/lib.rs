@@ -1,23 +1,22 @@
-use std::error::Error;
 use rand::{seq::SliceRandom, SeedableRng};
 use rand_chacha::ChaChaRng;
 use std::collections::HashMap;
+use std::error::Error;
 
 #[derive(Clone, Debug)]
 pub struct Config {
     pub size: u8,
     pub seed: u8,
     pub verbose: bool,
-    pub tickets: Vec<[u32;15]>
+    pub tickets: Vec<[u32; 15]>,
 }
 impl Config {
-    fn get_shuffle_numbers(&self, seed: u8) -> [u32;90]{
+    fn get_shuffle_numbers(&self, seed: u8) -> [u32; 90] {
         let mut rng: rand_chacha::ChaCha20Rng = ChaChaRng::from_seed([seed; 32]);
         let mut numbers: Vec<u32> = (1..91).collect::<Vec<u32>>();
-        numbers.shuffle(& mut rng);
+        numbers.shuffle(&mut rng);
         numbers.try_into().unwrap()
     }
-
 }
 
 // #[derive(Clone, Debug)]
@@ -29,9 +28,8 @@ impl Config {
 // }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-
-    let mut control: HashMap<[u32;15], u32> = HashMap::new();
-    let mut winners: Vec<[u32;15]>=Vec::new();
+    let mut control: HashMap<[u32; 15], u32> = HashMap::new();
+    let mut winners: Vec<[u32; 15]> = Vec::new();
     for raffle in 0..config.size {
         let numbers = config.get_shuffle_numbers(raffle + config.seed);
 
@@ -43,7 +41,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         winners.clear();
         for new_number in numbers {
             for (ticket, value) in control.iter_mut() {
-                if ticket.contains(&new_number){
+                if ticket.contains(&new_number) {
                     *value += 1;
                     if *value == 15 {
                         winners.push(*ticket);
@@ -54,7 +52,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
                 break;
             }
         }
-        println!("{} Winners  {:?} ",raffle, winners.len());
+        println!("{} Winners  {:?} ", raffle, winners.len());
     }
 
     Ok(())
