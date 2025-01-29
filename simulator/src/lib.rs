@@ -43,32 +43,32 @@ impl Config {
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     // Initialize a control map to track numbers matched on each ticket.
-    let mut control: HashMap<[u32; 15], u32> = HashMap::new();
+    let mut ticket_match_count: HashMap<[u32; 15], u32> = HashMap::new();
     // List to store winning tickets.
-    let mut winners: Vec<[u32; 15]> = Vec::new();
+    let mut winning_tickets: Vec<[u32; 15]> = Vec::new();
     for raffle in 0..config.size {
         let numbers = config.get_shuffle_numbers(raffle + config.seed);
 
-        control.clear();
+        ticket_match_count.clear();
         for ticket in &config.tickets {
-            control.insert(*ticket, 0);
+            ticket_match_count.insert(*ticket, 0);
         }
 
-        winners.clear();
-        for new_number in numbers {
-            for (ticket, value) in control.iter_mut() {
-                if ticket.contains(&new_number) {
-                    *value += 1;
-                    if *value == 15 {
-                        winners.push(*ticket);
+        winning_tickets.clear();
+        for drawn_number in numbers {
+            for (ticket, match_count) in ticket_match_count.iter_mut() {
+                if ticket.contains(&drawn_number) {
+                    *match_count += 1;
+                    if *match_count == 15 {
+                        winning_tickets.push(*ticket);
                     }
                 }
             }
-            if !winners.is_empty() {
+            if !winning_tickets.is_empty() {
                 break;
             }
         }
-        println!("{} Winners  {:?} ", raffle, winners.len());
+        println!("{} Winners  {:?} ", raffle, winning_tickets.len());
     }
 
     Ok(())
