@@ -12,6 +12,12 @@ use std::ops;
 use thousands::Separable;
 use ticket;
 
+/// Configuration for the bingo ticket generator.
+///
+/// # Fields
+/// - `size`: The number of tickets to generate.
+/// - `seed`: The seed for random number generation.
+/// - `verbose`: Whether to print detailed statistics.
 pub struct Config {
     pub size: usize,
     pub seed: u8,
@@ -27,6 +33,10 @@ struct Generator {
 }
 
 impl Generator {
+    /// Creates a new `Generator` with the specified seed.
+    ///
+    /// # Arguments
+    /// - `seed`: A seed for the random number generator.
     fn new(seed: u8) -> Self {
         let mut rng: rand_chacha::ChaCha20Rng = ChaChaRng::from_seed([seed; 32]);
 
@@ -76,6 +86,7 @@ impl Generator {
             conf_iter,
         }
     }
+    /// Displays statistics about the maximum set of tickets.
     fn show_stats(&mut self) {
         let mut sum: usize = 0;
         for configuration in &self.configurations {
@@ -88,6 +99,10 @@ impl Generator {
         println!("Max set of ticket: {}", sum.separate_with_dots());
     }
 
+    /// Generates a new bingo ticket.
+    ///
+    /// # Returns
+    /// An iterator over arrays of 15 numbers representing a bingo ticket.
     fn generate(&mut self) -> impl Iterator<Item = [u32; 15]> + '_ {
         from_fn(move || {
             let config: [usize; 9] = self.conf_iter.next().unwrap();
