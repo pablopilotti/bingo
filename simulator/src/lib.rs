@@ -77,7 +77,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     // Run the specified number of raffles
     for raffle in 0..config.size {
         // Get shuffled numbers for this raffle
-        let numbers = config.get_shuffle_numbers(raffle + config.seed);
+        let numbers: [u32; 90] = config.get_shuffle_numbers(raffle + config.seed);
 
         // Reset match counts for all tickets
         ticket_match_count.clear();
@@ -89,7 +89,9 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         winning_tickets.clear();
 
         // Draw numbers one by one
+        let mut drawn_number_position: usize = 0;        
         for drawn_number in numbers {
+            drawn_number_position = drawn_number_position + 1;
             // Update match counts for each ticket
             for (ticket, match_count) in ticket_match_count.iter_mut() {
                 if ticket.contains(&drawn_number) {
@@ -109,7 +111,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         }
 
         // Print results for this raffle
-        println!("Raffle {}: {} Winners", raffle, winning_tickets.len());
+        println!("Raffle {}: {} Winners after {} drawn numbers", raffle, winning_tickets.len(),drawn_number_position );
 
         // Print detailed ticket info if verbose mode is enabled
         if config.verbose && !winning_tickets.is_empty() {
