@@ -1,4 +1,4 @@
-# Bingo Ticket Generator and Simulator
+# UK Bingo (90-Ball Bingo) Ticket Generator and Simulator
 
 This repository contains a set of Rust crates for generating and simulating bingo tickets. It includes three main components: a generator for creating bingo tickets, a simulator for running bingo games, and a ticket library for handling ticket operations.
 
@@ -20,8 +20,8 @@ To build and run the project, you need to have Rust and Cargo installed. You can
 Clone the repository and navigate to the project directory:
 
 ```bash
-git clone <repository-url>
-cd <repository-directory>
+git clone git@github.com:pablopilotti/bingo.git
+cd bingo
 ```
 
 ## Usage
@@ -48,4 +48,4 @@ Contributions are welcome! Please fork the repository and submit a pull request 
 
 ## License
 
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+This project is licensed under the Apache License, Version 2.0. See the `LICENSE` file for details.
