@@ -9,7 +9,7 @@ use std::iter::from_fn;
 use std::iter::Cycle;
 use std::ops;
 use thousands::Separable;
-use ticket;
+extern crate ticket;
 
 /// Configuration for the bingo ticket generator.
 ///
@@ -56,23 +56,59 @@ impl Generator {
                 range.clone().combinations(2),
                 range.combinations(3),
             ]
-            .map(|combination: itertools::Combinations<ops::Range<u32>>| combination.collect::<Vec<Vec<u32>>>())
+            .map(|combination: itertools::Combinations<ops::Range<u32>>| {
+                combination.collect::<Vec<Vec<u32>>>()
+            })
         });
 
-        // shuffle
-        columns.iter_mut().for_each(|column: &mut [Vec<Vec<u32>>; 3]| {
-            column.iter_mut()
-                .for_each(|combination_set: &mut Vec<Vec<u32>>| combination_set.shuffle(&mut rng))
-        });
+        // Shuffle combinations within each column
+        columns
+            .iter_mut()
+            .for_each(|column: &mut [Vec<Vec<u32>>; 3]| {
+                column
+                    .iter_mut()
+                    .for_each(|combination_set: &mut Vec<Vec<u32>>| {
+                        combination_set.shuffle(&mut rng)
+                    })
+            });
 
-        let indexes: [[Cycle<std::vec::IntoIter<Vec<u32>>>; 3]; 9] = columns
-            .clone()
-            .map(|column: [Vec<Vec<u32>>; 3]| column.map(|combination_set: Vec<Vec<u32>>| combination_set.into_iter().cycle()));
+        let indexes: [[Cycle<std::vec::IntoIter<Vec<u32>>>; 3]; 9] =
+            columns.clone().map(|column: [Vec<Vec<u32>>; 3]| {
+                column.map(|combination_set: Vec<Vec<u32>>| {
+                    // Ensure we have at least one item before cycling
+                    if !combination_set.is_empty() {
+                        combination_set.into_iter().cycle()
+                    } else {
+                        // Fallback for empty sets (should never happen)
+                        vec![vec![]].into_iter().cycle()
+                    }
+                })
+            });
+        // Generate all valid configurations (those that sum to 6)
         let mut configurations: Vec<[usize; 9]> = Vec::new();
         let conf = iproduct!(0..3, 0..3, 0..3, 0..3, 0..3, 0..3, 0..3, 0..3, 0..3);
         for configuration in conf {
-            if configuration.0 + configuration.1 + configuration.2 + configuration.3 + configuration.4 + configuration.5 + configuration.6 + configuration.7 + configuration.8 == 6 {
-                configurations.push([configuration.0, configuration.1, configuration.2, configuration.3, configuration.4, configuration.5, configuration.6, configuration.7, configuration.8]);
+            let sum = configuration.0
+                + configuration.1
+                + configuration.2
+                + configuration.3
+                + configuration.4
+                + configuration.5
+                + configuration.6
+                + configuration.7
+                + configuration.8;
+            if sum == 6 {
+                configurations.push([
+                    configuration.0,
+                    configuration.1,
+                    configuration.2,
+                    configuration.3,
+                    configuration.4,
+                    configuration.5,
+                    configuration.6,
+                    configuration.7,
+                    configuration.8,
+                ]);
             }
         }
         configurations.shuffle(&mut rng);
@@ -104,13 +140,18 @@ impl Generator {
     /// An iterator over arrays of 15 numbers representing a bingo ticket.
     fn generate(&mut self) -> impl Iterator<Item = [u32; 15]> + '_ {
         from_fn(move || {
-            let config: [usize; 9] = self.conf_iter.next().unwrap();
+            let config: [usize; 9] = match self.conf_iter.next() {
+                Some(config) => config,
+                None => return None, // This should never happen with cycle(), but handle it anyway
+            };
             let mut ticket: [u32; 15] = [0; 15];
             let mut ticket_index: usize = 0;
             for (column_index, combination_index) in config.iter().enumerate() {
-                for number in self.indexes[column_index][*combination_index].next().unwrap().into_iter() {
-                    ticket[ticket_index] = number;
-                    ticket_index += 1;
+                if let Some(numbers) = self.indexes[column_index][*combination_index].next() {
+                    for number in numbers.into_iter() {
+                        ticket[ticket_index] = number;
+                        ticket_index += 1;
+                    }
                 }
             }
             Some(ticket)
@@ -125,8 +166,12 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     }
 
     for _ in 0..config.size {
-        let ticket: [u32; 15] = generator_instance.generate().next().unwrap();
-        ticket::show(ticket);
+        if let Some(ticket) = generator_instance.generate().next() {
+            ticket::show(ticket);
+        } else {
+            eprintln!("Error: Failed to generate ticket");
+            return Err("Ticket generation failed".into());
+        }
     }
     Ok(())
 }

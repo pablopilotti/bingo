@@ -26,14 +26,21 @@ fn main() {
         ap.parse_args_or_exit();
     }
 
-    let tickets = ticket::read_tickets(file).unwrap();
-    if let Err(e) = simulator::run(simulator::Config {
-        tickets,
-        size,
-        seed,
-        verbose,
-    }) {
-        eprintln!("Application error: {e}");
-        process::exit(1);
+    match ticket::read_tickets(file) {
+        Some(tickets) => {
+            if let Err(e) = simulator::run(simulator::Config {
+                tickets,
+                size,
+                seed,
+                verbose,
+            }) {
+                eprintln!("Application error: {e}");
+                process::exit(1);
+            }
+        }
+        None => {
+            eprintln!("Error: Could not read tickets from file");
+            process::exit(1);
+        }
     }
 }
